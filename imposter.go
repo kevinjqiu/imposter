@@ -10,6 +10,10 @@ import (
 	"github.com/martini-contrib/encoder"
 )
 
+type Error struct {
+	Message string `json:"message"`
+}
+
 type Preset struct {
 	Method     string `json:"method"`
 	Endpoint   string `json:"endpoint"`
@@ -20,24 +24,25 @@ type Preset struct {
 var presets = make(map[string]Preset)
 
 func GetPreset(params martini.Params, enc encoder.Encoder) (int, []byte) {
-	return http.StatusOK,
-		encoder.Must(enc.Encode(&Preset{"GET", "/foo", "{}", "200"}))
+	return http.StatusOK, encoder.Must(enc.Encode(&presets))
+
 }
 
-func CreatePreset(params martini.Params, w http.ResponseWriter, r *http.Request) (int, string) {
+func CreatePreset(
+	params martini.Params, w http.ResponseWriter,
+	r *http.Request, enc encoder.Encoder) (int, []byte) {
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return 400, fmt.Sprintf("%s", err)
+		return http.StatusBadRequest,
+			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
 	preset := &Preset{}
 	err = json.Unmarshal(bytes, &preset)
 	if err != nil {
-		return 400, fmt.Sprintf("%s", err)
+		return http.StatusBadRequest, encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
-
 	presets[preset.Endpoint] = *preset
-	fmt.Printf("%s", presets)
-	return 200, fmt.Sprintf("%s", preset)
+	return http.StatusOK, encoder.Must(enc.Encode(preset))
 }
 
 func PresetRouter(r martini.Router) {
