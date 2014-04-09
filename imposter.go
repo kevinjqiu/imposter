@@ -20,27 +20,28 @@ type Preset struct {
 var presets = make(map[string]Preset)
 
 func GetPreset(params martini.Params, enc encoder.Encoder) (int, []byte) {
-	return http.StatusOK, encoder.Must(enc.Encode(&Preset{"GET", "/foo", "{}", "200"}))
+	return http.StatusOK,
+		encoder.Must(enc.Encode(&Preset{"GET", "/foo", "{}", "200"}))
 }
 
-func CreatePreset(params martini.Params, w http.ResponseWriter, r *http.Request) (int, []byte) {
+func CreatePreset(params martini.Params, w http.ResponseWriter, r *http.Request) (int, string) {
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return 400, []byte(fmt.Sprintf("%s", err))
+		return 400, fmt.Sprintf("%s", err)
 	}
 	preset := &Preset{}
 	err = json.Unmarshal(bytes, &preset)
 	if err != nil {
-		return 400, []byte(fmt.Sprintf("%s", err))
+		return 400, fmt.Sprintf("%s", err)
 	}
 
 	presets[preset.Endpoint] = *preset
 	fmt.Printf("%s", presets)
-	return 200, []byte(fmt.Sprintf("%s", preset))
+	return 200, fmt.Sprintf("%s", preset)
 }
 
 func PresetRouter(r martini.Router) {
-	r.Get("/:id", GetPreset)
+	r.Get("/", GetPreset)
 	r.Post("/", CreatePreset)
 }
 
