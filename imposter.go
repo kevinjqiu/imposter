@@ -23,7 +23,7 @@ type Preset struct {
 
 var presets = make(map[string]Preset)
 
-func GetPreset(params martini.Params, enc encoder.Encoder) (int, []byte) {
+func GetPreset(enc encoder.Encoder) (int, []byte) {
 	return http.StatusOK, encoder.Must(enc.Encode(&presets))
 
 }
@@ -39,7 +39,8 @@ func CreatePreset(
 	preset := &Preset{}
 	err = json.Unmarshal(bytes, &preset)
 	if err != nil {
-		return http.StatusBadRequest, encoder.Must(enc.Encode(&Error{err.Error()}))
+		return http.StatusBadRequest,
+			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
 	presets[preset.Endpoint] = *preset
 	return http.StatusOK, encoder.Must(enc.Encode(preset))
