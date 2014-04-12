@@ -15,10 +15,11 @@ type Error struct {
 }
 
 type Preset struct {
-	Method     string `json:"method"`
-	Endpoint   string `json:"endpoint"`
-	Body       string `json:"body"`
-	StatusCode int    `json:"status_code"`
+	Method     string                 `json:"method"`
+	Endpoint   string                 `json:"endpoint"`
+	Body       string                 `json:"body"`
+	Header     map[string]interface{} `json:"header"`
+	StatusCode int                    `json:"status_code"`
 }
 
 var presets = make(map[string]Preset)
