@@ -43,7 +43,7 @@ func CreatePreset(
 			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
 	presets[preset.Endpoint] = *preset
-	return http.StatusOK, encoder.Must(enc.Encode(preset))
+	return http.StatusCreated, encoder.Must(enc.Encode(preset))
 }
 
 func PresetRouter(r martini.Router) {
@@ -52,7 +52,9 @@ func PresetRouter(r martini.Router) {
 }
 
 func GetMock(params martini.Params) string {
-	return fmt.Sprintf("%s", params)
+	fmt.Printf("%s", presets)
+	preset := presets["/"+params["_1"]]
+	return fmt.Sprintf("%s", preset)
 }
 
 func MockRouter(r martini.Router) {
