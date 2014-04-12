@@ -18,7 +18,7 @@ type Preset struct {
 	Method     string `json:"method"`
 	Endpoint   string `json:"endpoint"`
 	Body       string `json:"body"`
-	StatusCode string `json:"status_code"`
+	StatusCode int    `json:"status_code"`
 }
 
 var presets = make(map[string]Preset)
@@ -51,10 +51,13 @@ func PresetRouter(r martini.Router) {
 	r.Post("/", CreatePreset)
 }
 
-func GetMock(params martini.Params) string {
+func GetMock(params martini.Params) (int, string) {
 	fmt.Printf("%s", presets)
-	preset := presets["/"+params["_1"]]
-	return fmt.Sprintf("%s", preset)
+	preset, ok := presets["/"+params["_1"]]
+	if !ok {
+		return http.StatusNotFound, "{}"
+	}
+	return preset.StatusCode, preset.Body
 }
 
 func MockRouter(r martini.Router) {
