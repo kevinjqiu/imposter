@@ -24,9 +24,12 @@ type Preset struct {
 
 var presets = make(map[string]Preset)
 
+func spec(method string, endpoint string) string {
+	return fmt.Sprintf("%s %s", method, endpoint)
+}
+
 func GetPreset(enc encoder.Encoder) (int, []byte) {
 	return http.StatusOK, encoder.Must(enc.Encode(&presets))
-
 }
 
 func CreatePreset(
@@ -43,8 +46,7 @@ func CreatePreset(
 		return http.StatusBadRequest,
 			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
-	spec := fmt.Sprintf("%s %s", preset.Method, preset.Endpoint)
-	presets[spec] = *preset
+	presets[spec(preset.Method, preset.Endpoint)] = *preset
 	return http.StatusCreated, encoder.Must(enc.Encode(preset))
 }
 
@@ -56,8 +58,7 @@ func PresetRouter(r martini.Router) {
 func GetMock(req *http.Request, params martini.Params) (int, string) {
 	method := req.Method
 	endpoint := "/" + params["_1"]
-	spec := fmt.Sprintf("%s %s", method, endpoint)
-	preset, ok := presets[spec]
+	preset, ok := presets[spec(method, endpoint)]
 	if !ok {
 		return http.StatusNotFound, "{}"
 	}
