@@ -43,7 +43,8 @@ func CreatePreset(
 		return http.StatusBadRequest,
 			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
-	presets[preset.Endpoint] = *preset
+	spec := fmt.Sprintf("%s %s", preset.Method, preset.Endpoint)
+	presets[spec] = *preset
 	return http.StatusCreated, encoder.Must(enc.Encode(preset))
 }
 
@@ -52,9 +53,11 @@ func PresetRouter(r martini.Router) {
 	r.Post("/", CreatePreset)
 }
 
-func GetMock(params martini.Params) (int, string) {
-	fmt.Printf("%s", presets)
-	preset, ok := presets["/"+params["_1"]]
+func GetMock(req *http.Request, params martini.Params) (int, string) {
+	method := req.Method
+	endpoint := "/" + params["_1"]
+	spec := fmt.Sprintf("%s %s", method, endpoint)
+	preset, ok := presets[spec]
 	if !ok {
 		return http.StatusNotFound, "{}"
 	}
@@ -63,6 +66,7 @@ func GetMock(params martini.Params) (int, string) {
 
 func MockRouter(r martini.Router) {
 	r.Get("/**", GetMock)
+	r.Post("/**", GetMock)
 }
 
 func main() {
