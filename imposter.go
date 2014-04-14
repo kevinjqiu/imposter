@@ -38,7 +38,8 @@ func rule(method string, endpoint string) string {
 	return fmt.Sprintf("%s %s", method, endpoint)
 }
 
-func GetPreset(enc encoder.Encoder) (int, []byte) {
+func GetPreset(enc encoder.Encoder, w http.ResponseWriter) (int, []byte) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return http.StatusOK, encoder.Must(enc.Encode(&presets))
 }
 
@@ -57,6 +58,7 @@ func CreatePreset(
 			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
 	presets[rule(preset.Matcher.Method, preset.Matcher.Endpoint)] = *preset
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return http.StatusCreated, encoder.Must(enc.Encode(preset))
 }
 
@@ -86,9 +88,8 @@ func MockRouter(r martini.Router) {
 func main() {
 	m := martini.Classic()
 
-	m.Use(func(c martini.Context, w http.ResponseWriter) {
+	m.Use(func(c martini.Context) {
 		c.MapTo(encoder.JsonEncoder{}, (*encoder.Encoder)(nil))
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	})
 
 	m.Group("/p", PresetRouter)
