@@ -18,12 +18,28 @@ type PresetRequestMatcher struct {
 	Method   string            `json:"method"`
 	Endpoint string            `json:"endpoint"`
 	Body     string            `json:"body"`
-	Header   map[string]string `json:"header"`
+	Headers  map[string]string `json:"headers"`
+}
+
+func (this *PresetRequestMatcher) Match(req *http.Request) bool {
+	fmt.Printf("%s", req.Headers)
+	// match header
+	// for key, value := range this.Headers {
+	//     requestValue, ok := req.Header[key]
+	//     if !ok {
+	//         return false
+	//     }
+	//     if requestValue != value {
+	//         return false
+	//     }
+	// }
+	// match body
+	return true
 }
 
 type PresetResponse struct {
 	Body       string            `json:"body"`
-	Header     map[string]string `json:"header"`
+	Headers    map[string]string `json:"headers"`
 	StatusCode int               `json:"status_code"`
 }
 
@@ -74,10 +90,13 @@ func GetMock(req *http.Request, writer http.ResponseWriter, params martini.Param
 	if !ok {
 		return http.StatusNotFound, "{}"
 	}
-	for key, value := range preset.Response.Header {
-		writer.Header().Set(key, value)
+	if preset.Matcher.Match(req) {
+		for key, value := range preset.Response.Headers {
+			writer.Header().Set(key, value)
+		}
+		return preset.Response.StatusCode, preset.Response.Body
 	}
-	return preset.Response.StatusCode, preset.Response.Body
+	return 418, "Not a teapot :)"
 }
 
 func MockRouter(r martini.Router) {
