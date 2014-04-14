@@ -36,6 +36,10 @@ func (this *PresetRequestMatcher) Match(req *http.Request) bool {
 		}
 	}
 	// match body
+	bytes, _ := ioutil.ReadAll(req.Body)
+	if string(bytes) != this.Body {
+		return false
+	}
 	return true
 }
 
