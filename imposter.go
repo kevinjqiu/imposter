@@ -22,17 +22,19 @@ type PresetRequestMatcher struct {
 }
 
 func (this *PresetRequestMatcher) Match(req *http.Request) bool {
-	fmt.Printf("%s", req.Headers)
+	fmt.Printf("%s", req.Header)
 	// match header
-	// for key, value := range this.Headers {
-	//     requestValue, ok := req.Header[key]
-	//     if !ok {
-	//         return false
-	//     }
-	//     if requestValue != value {
-	//         return false
-	//     }
-	// }
+	for key, value := range this.Headers {
+		headerValues, ok := req.Header[key]
+		if !ok {
+			return false
+		}
+		for _, requestValue := range headerValues {
+			if requestValue != value {
+				return false
+			}
+		}
+	}
 	// match body
 	return true
 }
