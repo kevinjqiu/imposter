@@ -14,12 +14,22 @@ type Error struct {
 	Message string `json:"message"`
 }
 
-type Preset struct {
-	Method     string            `json:"method"`
-	Endpoint   string            `json:"endpoint"`
+type PresetRequestMatcher struct {
+	Method   string            `json:"method"`
+	Endpoint string            `json:"endpoint"`
+	Body     string            `json:"body"`
+	Header   map[string]string `json:"header"`
+}
+
+type PresetResponse struct {
 	Body       string            `json:"body"`
 	Header     map[string]string `json:"header"`
 	StatusCode int               `json:"status_code"`
+}
+
+type Preset struct {
+	Matcher  PresetRequestMatcher `json:"matcher"`
+	Response PresetResponse       `json:"response"`
 }
 
 var presets = make(map[string]Preset)
@@ -46,7 +56,7 @@ func CreatePreset(
 		return http.StatusBadRequest,
 			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
-	presets[rule(preset.Method, preset.Endpoint)] = *preset
+	presets[rule(preset.Matcher.Method, preset.Matcher.Endpoint)] = *preset
 	return http.StatusCreated, encoder.Must(enc.Encode(preset))
 }
 
@@ -62,10 +72,10 @@ func GetMock(req *http.Request, writer http.ResponseWriter, params martini.Param
 	if !ok {
 		return http.StatusNotFound, "{}"
 	}
-	for key, value := range preset.Header {
+	for key, value := range preset.Response.Header {
 		writer.Header().Set(key, value)
 	}
-	return preset.StatusCode, preset.Body
+	return preset.Response.StatusCode, preset.Response.Body
 }
 
 func MockRouter(r martini.Router) {
