@@ -94,7 +94,7 @@ func GetMock(req *http.Request, writer http.ResponseWriter, params martini.Param
 	endpoint := "/" + params["_1"]
 	preset, ok := presets[rule(method, endpoint)]
 	if !ok {
-		return http.StatusNotFound, "{}"
+		return http.StatusNotFound, ""
 	}
 	if preset.Matcher.Match(req) {
 		for key, value := range preset.Response.Headers {
@@ -102,7 +102,7 @@ func GetMock(req *http.Request, writer http.ResponseWriter, params martini.Param
 		}
 		return preset.Response.StatusCode, preset.Response.Body
 	}
-	return 418, "Not a teapot :)"
+	return 418, "Not a teapot :("
 }
 
 func MockRouter(r martini.Router) {
