@@ -54,7 +54,9 @@ type Preset struct {
 	Response PresetResponse       `json:"response"`
 }
 
-var presets = make(map[string]Preset)
+type PresetList []Preset
+
+var presets = make(map[string]PresetList)
 
 func rule(method string, endpoint string) string {
 	return fmt.Sprintf("%s %s", method, endpoint)
