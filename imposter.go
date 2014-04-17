@@ -56,7 +56,19 @@ type Preset struct {
 
 type PresetList []Preset
 
-var presets = make(map[string]PresetList)
+type Presets map[string]PresetList
+
+func (this Presets) Add(preset *Preset) {
+	rule := rule(preset.Matcher.Method, preset.Matcher.Endpoint)
+	presets_for_rule, ok := this[rule]
+	if !ok {
+		presets_for_rule = PresetList(make([]Preset, 0, 5))
+	}
+	presets_for_rule = append(presets_for_rule, *preset)
+	this[rule] = presets_for_rule
+}
+
+var presets = Presets(make(map[string]PresetList))
 
 func rule(method string, endpoint string) string {
 	return fmt.Sprintf("%s %s", method, endpoint)
@@ -81,7 +93,8 @@ func CreatePreset(
 		return http.StatusBadRequest,
 			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
-	presets[rule(preset.Matcher.Method, preset.Matcher.Endpoint)] = *preset
+	presets.Add(preset)
+	// presets[rule(preset.Matcher.Method, preset.Matcher.Endpoint)] = *preset
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return http.StatusCreated, encoder.Must(enc.Encode(preset))
 }
@@ -94,15 +107,18 @@ func PresetRouter(r martini.Router) {
 func GetMock(req *http.Request, writer http.ResponseWriter, params martini.Params) (int, string) {
 	method := req.Method
 	endpoint := "/" + params["_1"]
-	preset, ok := presets[rule(method, endpoint)]
+	presets, ok := presets[rule(method, endpoint)]
 	if !ok {
 		return http.StatusNotFound, ""
 	}
-	if preset.Matcher.Match(req) {
-		for key, value := range preset.Response.Headers {
-			writer.Header().Set(key, value)
+
+	for _, preset := range presets {
+		if preset.Matcher.Match(req) {
+			for key, value := range preset.Response.Headers {
+				writer.Header().Set(key, value)
+			}
+			return preset.Response.StatusCode, preset.Response.Body
 		}
-		return preset.Response.StatusCode, preset.Response.Body
 	}
 	return 418, "Not a teapot :("
 }
