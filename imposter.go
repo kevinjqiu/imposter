@@ -94,7 +94,6 @@ func CreatePreset(
 			encoder.Must(enc.Encode(&Error{err.Error()}))
 	}
 	presets.Add(preset)
-	// presets[rule(preset.Matcher.Method, preset.Matcher.Endpoint)] = *preset
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return http.StatusCreated, encoder.Must(enc.Encode(preset))
 }
