@@ -15,6 +15,10 @@ type Rule struct {
 	Method string
 }
 
+func (rule Rule) Match() bool {
+	return false
+}
+
 type Response struct {
 	Status int
 	Header map[string]string
